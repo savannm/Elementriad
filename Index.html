@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mystic Clash - Card Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .player-section, .opponent-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #667eea;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 1rem;
+            color: #555;
+        }
+
+        .info-label {
+            font-weight: bold;
+        }
+
+        .info-value {
+            color: #764ba2;
+            font-weight: bold;
+        }
+
+        .battle-field {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .battle-title {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #667eea;
+            text-transform: uppercase;
+        }
+
+        .battle-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .battle-slot {
+            aspect-ratio: 1;
+            border: 3px solid #ddd;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            position: relative;
+            min-height: 150px;
+            transition: all 0.3s;
+        }
+
+        .battle-slot:hover {
+            border-color: #667eea;
+            transform: scale(1.02);
+        }
+
+        .battle-slot.opponent {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        }
+
+        .battle-slot.empty {
+            border-style: dashed;
+            opacity: 0.7;
+        }
+
+        .card-in-battle {
+            width: 100%;
+            height: 100%;
+            padding: 10px;
+        }
+
+        .hand {
+            margin-top: 20px;
+        }
+
+        .hand-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 2px solid #fff;
+            border-radius: 10px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 160px;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .card.selected {
+            border: 3px solid #ffff00;
+            transform: scale(1.05);
+        }
+
+        .card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            filter: grayscale(50%);
+        }
+
+        .card-name {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+
+        .stat {
+            background: rgba(255,255,255,0.2);
+            padding: 4px;
+            border-radius: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            opacity: 0.9;
+        }
+
+        .card-element {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .message {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #764ba2;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 10px;
+            min-height: 25px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+        }
+
+        .game-over {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .game-over.show {
+            display: flex;
+        }
+
+        .game-over-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.3);
+            animation: popIn 0.3s ease-out;
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .game-over-content h2 {
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .game-over-content p {
+            font-size: 1.3rem;
+            color: #555;
+            margin-bottom: 30px;
+        }
+
+        .stats-display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .stat-item {
+            background: #f5f7fa;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .stat-item strong {
+            color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .game-board {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .cards-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .battle-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✨ Mystic Clash ✨</h1>
+            <p>An original card battle game inspired by classic card duels</p>
+        </div>
+
+        <div class="game-board">
+            <div class="player-section">
+                <div class="section-title">👤 Your Stats</div>
+                <div class="info-row">
+                    <span class="info-label">Health:</span>
+                    <span class="info-value" id="playerHealth">20</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Cards Won:</span>
+                    <span class="info-value" id="playerWins">0</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Cards Left:</span>
+                    <span class="info-value" id="playerCards">5</span>
+                </div>
+            </div>
+
+            <div class="opponent-section">
+                <div class="section-title">🤖 Opponent Stats</div>
+                <div class="info-row">
+                    <span class="info-label">Health:</span>
+                    <span class="info-value" id="opponentHealth">20</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Cards Won:</span>
+                    <span class="info-value" id="opponentWins">0</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Cards Left:</span>
+                    <span class="info-value" id="opponentCards">5</span>
+                </div>
+            </div>
+
+            <div class="battle-field">
+                <div class="battle-title">⚔️ Battle Field ⚔️</div>
+                <div class="message" id="battleMessage">Choose a card from your hand to start!</div>
+                
+                <div class="battle-grid">
+                    <div class="battle-slot" id="slot1"></div>
+                    <div class="battle-slot" id="slot2"></div>
+                    <div class="battle-slot" id="slot3"></div>
+                    <div class="battle-slot opponent" id="slot4"></div>
+                    <div class="battle-slot opponent" id="slot5"></div>
+                    <div class="battle-slot opponent" id="slot6"></div>
+                </div>
+
+                <div class="hand">
+                    <div class="hand-title">🎴 Your Hand</div>
+                    <div class="cards-container" id="playerHand"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button class="btn-primary" id="submitBtn" onclick="submitRound()" disabled>Submit Battle</button>
+            <button class="btn-secondary" onclick="newGame()">New Game</button>
+        </div>
+    </div>
+
+    <div class="game-over" id="gameOverModal">
+        <div class="game-over-content">
+            <h2 id="gameOverTitle">Game Over!</h2>
+            <p id="gameOverMessage"></p>
+            <div class="stats-display">
+                <div class="stat-item">
+                    <strong>Your Cards Won:</strong>
+                    <div id="finalPlayerWins">0</div>
+                </div>
+                <div class="stat-item">
+                    <strong>Opponent Cards Won:</strong>
+                    <div id="finalOpponentWins">0</div>
+                </div>
+            </div>
+            <button class="btn-primary" onclick="newGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // Game Constants
+        const CARD_TYPES = ['Fire', 'Water', 'Wind', 'Earth', 'Light', 'Dark'];
+        const ELEMENTS = ['🔥', '💧', '🌪️', '🌍', '✨', '🌑'];
+        const INITIAL_HEALTH = 20;
+        const CARDS_PER_HAND = 5;
+        const ROUNDS_NEEDED = 3;
+
+        // Game State
+        let gameState = {
+            playerHealth: INITIAL_HEALTH,
+            opponentHealth: INITIAL_HEALTH,
+            playerCardsWon: 0,
+            opponentCardsWon: 0,
+            playerHand: [],
+            opponentHand: [],
+            selectedCard: null,
+            gameOver: false,
+            roundActive: false
+        };
+
+        // Card Class
+        class Card {
+            constructor(name, attack, defense, type, id) {
+                this.name = name;
+                this.attack = attack;
+                this.defense = defense;
+                this.type = type;
+                this.id = id;
+                this.element = ELEMENTS[CARD_TYPES.indexOf(type)];
+            }
+        }
+
+        // Generate deck
+        function generateDeck() {
+            const cardNames = [
+                'Mystic Knight', 'Shadow Assassin', 'Holy Priest', 'Dragon Lord', 'Ice Wizard',
+                'Thunder Mage', 'Forest Guardian', 'Inferno Beast', 'Stone Giant', 'Wind Spirit',
+                'Void Reaper', 'Celestial Angel', 'Desert Nomad', 'Ocean Leviathan', 'Storm Rider'
+            ];
+
+            const deck = [];
+            cardNames.forEach((name, index) => {
+                const type = CARD_TYPES[Math.floor(Math.random() * CARD_TYPES.length)];
+                const attack = Math.floor(Math.random() * 7) + 3;
+                const defense = Math.floor(Math.random() * 7) + 3;
+                deck.push(new Card(name, attack, defense, type, index));
+            });
+
+            return deck;
+        }
+
+        // Initialize game
+        function initializeGame() {
+            const deck = generateDeck();
+            gameState.playerHand = deck.slice(0, CARDS_PER_HAND);
+            gameState.opponentHand = deck.slice(CARDS_PER_HAND, CARDS_PER_HAND * 2);
+            gameState.playerHealth = INITIAL_HEALTH;
+            gameState.opponentHealth = INITIAL_HEALTH;
+            gameState.playerCardsWon = 0;
+            gameState.opponentCardsWon = 0;
+            gameState.selectedCard = null;
+            gameState.gameOver = false;
+            gameState.roundActive = false;
+            document.getElementById('gameOverModal').classList.remove('show');
+            render();
+        }
+
+        // Render card
+        function renderCard(card, index, isOpponent = false) {
+            const cardEl = document.createElement('div');
+            cardEl.className = 'card';
+            if (gameState.selectedCard === index && !isOpponent) {
+                cardEl.classList.add('selected');
+            }
+            if (isOpponent || gameState.roundActive) {
+                cardEl.classList.add('disabled');
+            }
+
+            cardEl.innerHTML = `
+                <div class="card-element">${card.element}</div>
+                <div class="card-name">${card.name}</div>
+                <div class="card-stats">
+                    <div class="stat">
+                        <div class="stat-label">ATK</div>
+                        <div>${card.attack}</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-label">DEF</div>
+                        <div>${card.defense}</div>
+                    </div>
+                </div>
+                <div>${card.type}</div>
+            `;
+
+            if (!isOpponent && !gameState.roundActive) {
+                cardEl.onclick = () => selectCard(index);
+            }
+
+            return cardEl;
+        }
+
+        // Select card
+        function selectCard(index) {
+            if (gameState.roundActive) return;
+            gameState.selectedCard = gameState.selectedCard === index ? null : index;
+            render();
+        }
+
+        // Submit round
+        function submitRound() {
+            if (gameState.selectedCard === null || gameState.roundActive || gameState.gameOver) return;
+
+            gameState.roundActive = true;
+            document.getElementById('battleMessage').textContent = 'Opponent is choosing...';
+            document.getElementById('submitBtn').disabled = true;
+
+            // Opponent chooses random card
+            const opponentCard = Math.floor(Math.random() * gameState.opponentHand.length);
+
+            setTimeout(() => {
+                resolveRound(gameState.selectedCard, opponentCard);
+            }, 1000);
+        }
+
+        // Calculate card power
+        function calculatePower(card, isOpponent = false) {
+            const typeAdvantage = {
+                'Fire': { 'Wind': 1.5, 'Earth': 0.8 },
+                'Water': { 'Fire': 1.5, 'Wind': 0.8 },
+                'Wind': { 'Earth': 1.5, 'Water': 0.8 },
+                'Earth': { 'Water': 1.5, 'Fire': 0.8 },
+                'Light': { 'Dark': 2.0 },
+                'Dark': { 'Light': 2.0 }
+            };
+
+            let power = card.attack;
+            return power;
+        }
+
+        // Resolve round
+        function resolveRound(playerCardIndex, opponentCardIndex) {
+            const playerCard = gameState.playerHand[playerCardIndex];
+            const opponentCard = gameState.opponentHand[opponentCardIndex];
+
+            const playerPower = calculatePower(playerCard, false) + playerCard.defense;
+            const opponentPower = calculatePower(opponentCard, true) + opponentCard.defense;
+
+            // Type advantage
+            const typeBonus = {
+                'Fire': { 'Wind': 2, 'Earth': -1 },
+                'Water': { 'Fire': 2, 'Wind': -1 },
+                'Wind': { 'Earth': 2, 'Water': -1 },
+                'Earth': { 'Water': 2, 'Fire': -1 },
+                'Light': { 'Dark': 3 },
+                'Dark': { 'Light': 3 }
+            };
+
+            const playerBonus = typeBonus[playerCard.type]?.[opponentCard.type] || 0;
+            const opponentBonus = typeBonus[opponentCard.type]?.[playerCard.type] || 0;
+
+            const finalPlayerPower = playerPower + playerBonus;
+            const finalOpponentPower = opponentPower + opponentBonus;
+
+            let message = `${playerCard.name} (${finalPlayerPower}) vs ${opponentCard.name} (${finalOpponentPower})! `;
+
+            if (finalPlayerPower > finalOpponentPower) {
+                gameState.playerCardsWon++;
+                gameState.opponentHealth -= 3;
+                message += '🎉 You win this round!';
+            } else if (finalOpponentPower > finalPlayerPower) {
+                gameState.opponentCardsWon++;
+                gameState.playerHealth -= 3;
+                message += '😢 Opponent wins this round!';
+            } else {
+                message += '⚖️ It\'s a tie! Damage both dealt!';
+                gameState.playerHealth -= 1;
+                gameState.opponentHealth -= 1;
+            }
+
+            document.getElementById('battleMessage').textContent = message;
+
+            // Remove played cards
+            gameState.playerHand.splice(playerCardIndex, 1);
+            gameState.opponentHand.splice(opponentCardIndex, 1);
+
+            // Check for game over
+            if (gameState.playerHand.length === 0 || gameState.opponentHand.length === 0 || 
+                gameState.playerHealth <= 0 || gameState.opponentHealth <= 0) {
+                endGame();
+            } else {
+                gameState.selectedCard = null;
+                gameState.roundActive = false;
+                document.getElementById('submitBtn').disabled = false;
+            }
+
+            render();
+        }
+
+        // End game
+        function endGame() {
+            gameState.gameOver = true;
+
+            let title, message;
+            if (gameState.playerCardsWon > gameState.opponentCardsWon) {
+                title = '🏆 Victory!';
+                message = 'You have defeated your opponent!';
+            } else if (gameState.opponentCardsWon > gameState.playerCardsWon) {
+                title = '💀 Defeat!';
+                message = 'Your opponent has defeated you!';
+            } else {
+                title = '⚖️ Draw!';
+                message = 'The battle ended in a tie!';
+            }
+
+            document.getElementById('gameOverTitle').textContent = title;
+            document.getElementById('gameOverMessage').textContent = message;
+            document.getElementById('finalPlayerWins').textContent = gameState.playerCardsWon;
+            document.getElementById('finalOpponentWins').textContent = gameState.opponentCardsWon;
+            document.getElementById('gameOverModal').classList.add('show');
+            document.getElementById('submitBtn').disabled = true;
+        }
+
+        // Render UI
+        function render() {
+            // Update stats
+            document.getElementById('playerHealth').textContent = Math.max(0, gameState.playerHealth);
+            document.getElementById('opponentHealth').textContent = Math.max(0, gameState.opponentHealth);
+            document.getElementById('playerWins').textContent = gameState.playerCardsWon;
+            document.getElementById('opponentWins').textContent = gameState.opponentCardsWon;
+            document.getElementById('playerCards').textContent = gameState.playerHand.length;
+            document.getElementById('opponentCards').textContent = gameState.opponentHand.length;
+
+            // Render hand
+            const handContainer = document.getElementById('playerHand');
+            handContainer.innerHTML = '';
+            gameState.playerHand.forEach((card, index) => {
+                handContainer.appendChild(renderCard(card, index, false));
+            });
+
+            // Update button state
+            document.getElementById('submitBtn').disabled = gameState.selectedCard === null || gameState.roundActive || gameState.gameOver;
+        }
+
+        // New game
+        function newGame() {
+            initializeGame();
+        }
+
+        // Start game
+        initializeGame();
+    </script>
+</body>
+</html>
