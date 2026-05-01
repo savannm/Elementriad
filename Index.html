@@ -637,9 +637,9 @@
             gameState.playerHand.splice(playerCardIndex, 1);
             gameState.opponentHand.splice(opponentCardIndex, 1);
 
-            // Check for game over
-            if (gameState.playerHand.length === 0 || gameState.opponentHand.length === 0 || 
-                gameState.playerHealth <= 0 || gameState.opponentHealth <= 0) {
+            // Check for game over - only end if someone has won ROUNDS_NEEDED cards
+            if (gameState.playerCardsWon >= ROUNDS_NEEDED || gameState.opponentCardsWon >= ROUNDS_NEEDED ||
+                gameState.playerHand.length === 0 || gameState.opponentHand.length === 0) {
                 endGame();
             } else {
                 gameState.selectedCard = null;
